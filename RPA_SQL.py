@@ -169,6 +169,7 @@ tabela_tag = {
     "tag": "tags"      
 }
 
+#categoria
 tabela_category = {
     "categoria":"categories"
 }
