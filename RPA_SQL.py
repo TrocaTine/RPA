@@ -5,17 +5,21 @@ from dotenv import load_dotenv
 import os
 import requests
 
+# Carrega variáveis de ambiente do arquivo .env
 load_dotenv(dotenv_path='.env')
 
 def extraindo_info_tabela_origem(table_name, conn_params):
    
+    # Conexão com o banco de dados 
     conn_string = f"postgresql://{conn_params['user']}:{conn_params['password']}@{conn_params['host']}:{conn_params['port']}/{conn_params['dbname']}"
    
     try:
+        # Cria um motor de conexão com o banco de dados
         engine = create_engine(conn_string)
 
         query = f"SELECT * FROM {table_name}"
 
+        # Executa a query e armazena o resultado em um DataFrame
         df = pd.read_sql(query, engine)
 
         return df
@@ -29,6 +33,7 @@ def colunas_tabela_destino(table_name, conn_params):
     conn = None
     try:
 
+        # Conecta ao banco de dados de destino
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
@@ -43,21 +48,23 @@ def colunas_tabela_destino(table_name, conn_params):
             if i == ('categories',):
                 print(i)
         
+        # Extrai as colunas da tabela
         columns = []
         for i in resultado:
             columns.append(i[0])
         return columns
+    
     except Exception as e:
         print(f"Erro ao buscar colunas da tabela {table_name}: {e}")
         return []
-    finally:
-        
+    
+    finally:      
         if conn:
             cur.close()
             conn.close()
 
-# Função para criptografar a senha usando a API fornecida
-def get_encrypted_password(password):
+def criptografando_senha(password):
+    # Função para criptografar a senha usando a API fornecida
     url = "https://api-spring-boot-trocatine.onrender.com/users/encrypt-password"
     headers = {"Content-Type": "application/json"}
     body = {"password": password}
@@ -69,7 +76,6 @@ def get_encrypted_password(password):
             return data["data"]["password"]
     print("Erro ao criptografar senha:", response.status_code)
     return None
-# Função para inserir informações na tabela de destino 'Users'
 
 def inserir_info_tabela_destino_usuario(df_usuarios, df_adm, conn_params):
     conn = None
@@ -104,11 +110,11 @@ def inserir_info_tabela_destino_usuario(df_usuarios, df_adm, conn_params):
                 num += 1
             apelidos_existentes.add(nickname)
             
-            # Verificar se é administrador
+            # Verificar se o usuario é administrador
             admin = row['id'] in ids_adm
             
-            # Criptografar senha
-            encrypted_password = get_encrypted_password(row['senha'])
+            # Criptografar a senha do usuário
+            encrypted_password = criptografando_senha(row['senha'])
             
             # Inserir dados na tabela Users
             query_users = (f"INSERT INTO users (first_name, last_name, email, cpf, birth_date, admin, nickname, password)"
@@ -128,7 +134,6 @@ def inserir_info_tabela_destino_usuario(df_usuarios, df_adm, conn_params):
             cur.close()
             conn.close()
 
-# Função para inserir informações na tabela de destino 'Phones'
 def inserir_info_tabela_destino_phones(df_usuarios, conn_params):
     conn = None
     try:
@@ -160,12 +165,12 @@ def inserir_info_tabela_destino_phones(df_usuarios, conn_params):
             cur.close()
             conn.close()
 
-# Função para extrair, transformar e transferir informações dos usuários
 def transferindo_info_usuario(parametros_extracao, parametros_destino):
     # Extrair dados das tabelas de origem
     df_usuarios = extraindo_info_tabela_origem("usuario", parametros_extracao)
     df_adm = extraindo_info_tabela_origem("adm", parametros_extracao)
 
+    # Verifica se os dados foram extraídos corretamente antes de inserir
     if df_usuarios is not None and df_adm is not None:
         inserir_info_tabela_destino_usuario(df_usuarios, df_adm, parametros_destino)
         inserir_info_tabela_destino_phones(df_usuarios, parametros_destino)
@@ -249,8 +254,8 @@ def inserir_info_tabela_destino_tag(df, table_name, conn_params, target_columns)
                 valores_unicos = set(df[i].dropna())
 
                 for j in valores_unicos:
+                    # Verifica se o valor ainda não existe na tabela destino
                     if j not in valores_existentes:  
-                        # Monta e executa a query de inserção
                         query = f"INSERT INTO {table_name} ({colunas_str}) VALUES ('{i.capitalize()}', '{j}')"
                         cur.execute(query)  
                         print(f"Registro inserido: {j}")
@@ -269,7 +274,6 @@ def inserir_info_tabela_destino_tag(df, table_name, conn_params, target_columns)
         if conn:
             cur.close()
             conn.close()
-
  
 def transferindo_info_tag(tabelas_mapeadas, parametros_extracao, parametros_destino):
 
@@ -279,6 +283,7 @@ def transferindo_info_tag(tabelas_mapeadas, parametros_extracao, parametros_dest
        
         df = extraindo_info_tabela_origem(tabela_origem, parametros_extracao)
         if df is not None and not df.empty:
+            # Obtém as colunas da tabela de destino
             target_columns = colunas_tabela_destino(tabela_destino, parametros_destino)
             if target_columns:
                 inserir_info_tabela_destino_tag(df, tabela_destino, parametros_destino, target_columns)
