@@ -8,6 +8,7 @@ import requests
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv(dotenv_path='.env')
 
+# Função para extrair dados de uma tabela de origem
 def extraindo_info_tabela_origem(table_name, conn_params):
    
     # Conexão com o banco de dados 
@@ -28,6 +29,7 @@ def extraindo_info_tabela_origem(table_name, conn_params):
         print(f"Erro ao extrair dados da tabela {table_name}: {e}")
         return None
  
+# Função para obter as colunas de uma tabela de destino 
 def colunas_tabela_destino(table_name, conn_params):
     
     conn = None
@@ -63,8 +65,8 @@ def colunas_tabela_destino(table_name, conn_params):
             cur.close()
             conn.close()
 
+# Função para criptografar a senha usando uma API
 def criptografando_senha(password):
-    # Função para criptografar a senha usando a API fornecida
     url = "https://api-spring-boot-trocatine.onrender.com/users/encrypt-password"
     headers = {"Content-Type": "application/json"}
     body = {"password": password}
@@ -77,6 +79,7 @@ def criptografando_senha(password):
     print("Erro ao criptografar senha:", response.status_code)
     return None
 
+# Função para inserir dados na tabela 'Users' de destino
 def inserir_info_tabela_destino_usuario(df_usuarios, df_adm, conn_params):
     conn = None
     try:
@@ -134,6 +137,7 @@ def inserir_info_tabela_destino_usuario(df_usuarios, df_adm, conn_params):
             cur.close()
             conn.close()
 
+# Função para inserir informações na tabela 'Phones'
 def inserir_info_tabela_destino_phones(df_usuarios, conn_params):
     conn = None
     try:
@@ -165,6 +169,7 @@ def inserir_info_tabela_destino_phones(df_usuarios, conn_params):
             cur.close()
             conn.close()
 
+# Função para ETL das informações dos usuários
 def transferindo_info_usuario(parametros_extracao, parametros_destino):
     # Extrair dados das tabelas de origem
     df_usuarios = extraindo_info_tabela_origem("usuario", parametros_extracao)
@@ -177,6 +182,7 @@ def transferindo_info_usuario(parametros_extracao, parametros_destino):
     else:
         print("Erro ao extrair dados das tabelas de origem")
 
+# Função para inserir dados na tabela de destino 'Category'
 def inserir_info_tabela_destino_category(df, table_name, conn_params, target_columns): 
     conn = None
     try:
@@ -218,6 +224,7 @@ def inserir_info_tabela_destino_category(df, table_name, conn_params, target_col
             cur.close()
             conn.close()
  
+ # Função para transferir informações das categorias
 def transferindo_info_category(tabelas_mapeadas, parametros_extracao, parametros_destino):
 
     for tabela_origem, tabela_destino in tabelas_mapeadas.items():
@@ -234,6 +241,7 @@ def transferindo_info_category(tabelas_mapeadas, parametros_extracao, parametros
         else:
             print(f"Não há dados para transferir na tabela {tabela_origem}")
  
+# Função para inserir dados na tabela de destino 'tags' 
 def inserir_info_tabela_destino_tag(df, table_name, conn_params, target_columns):
     conn = None
     try:
@@ -275,6 +283,7 @@ def inserir_info_tabela_destino_tag(df, table_name, conn_params, target_columns)
             cur.close()
             conn.close()
  
+# Função para transferir informações das tags 
 def transferindo_info_tag(tabelas_mapeadas, parametros_extracao, parametros_destino):
 
     for tabela_origem, tabela_destino in tabelas_mapeadas.items():
