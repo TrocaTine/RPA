@@ -15,12 +15,14 @@ pip install -r requirements.txt
 
 # Variáveis de ambiente
 Crie um arquivo .env na raiz do projeto e configure as seguintes variáveis de ambiente:
+```
 DB_NAME_PRIMEIRO_ANO=<nome_do_banco_de_dados_origem>
 DB_NAME_SEGUNDO_ANO=<nome_do_banco_de_dados_destino>
 DB_USER=<usuario_do_banco>
 DB_PASSWORD=<senha_do_banco>
 DB_HOST=<endereco_do_host>
 DB_PORT=<porta_do_banco>
+```
 
 # Estrutura do Código
 O código está dividido em várias funções principais para facilitar a modularidade e a manutenção.
